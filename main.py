@@ -13,6 +13,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 PREFIX = "https://smashkarts.io/link/?"
 
 FORMAT_CHOICE, SCORE_TARGET_CHOICE, MAP_CHOICE = range(3)
+
 MAPS = {
     "1": "graveyard",
     "2": "skyarena-temples",
@@ -50,7 +51,7 @@ SCORE_MODE = {
     "20": 67436556
 }
 
-async def start_command(update, context):
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Hi, Smashkarter! \n"
         "Reply 'timer' for a Timer Match ⏳\n"
@@ -58,7 +59,7 @@ async def start_command(update, context):
     )
     return FORMAT_CHOICE
 
-async def format_choice(update, context):
+async def format_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response = update.message.text.strip().lower()
     
     if (response == "timer"):
@@ -83,36 +84,37 @@ async def format_choice(update, context):
         await update.message.reply_text("gambit_pnav")
         return FORMAT_CHOICE
     else:
-        await update.message.reply_text(" Enter a valid choice")
+        await update.message.reply_text("❌ Enter a valid choice")
         return FORMAT_CHOICE
 
-async def score_target_choice(update , context):
 
+async def score_target_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     response = update.message.text.strip()
-    is_timer= context.user_data.get("is_timer")
+    is_timer = context.user_data.get("is_timer")
 
     if is_timer == True:
 
         if response not in TIMER_MODE.keys():
             await update.message.reply_text("Enter a valid choice")
             return SCORE_TARGET_CHOICE
-        
-        for timer_val in TIMER_MODE.keys():
-            if timer_val == response:
-                await update.message.reply_text(f"You have selected a {timer_val} minutes timer match ")
-                context.user_data["time"] = timer_val
+
+        context.user_data["time"] = response
+        await update.message.reply_text(
+            f"You have selected a {response} minutes timer match."
+        )
+
     else:
-        if response not in SCORE_MODE.keys():
-            await update.message.reply_text("Enter a valid choice")
+        if response not in SCORE_MODE:
+            await update.message.reply_text("❌ Enter a valid choice")
             return SCORE_TARGET_CHOICE
-        
-        for score_val in TIMER_MODE.keys():
-            if score_val == response:
-                await update.message.reply_text(f"You have selected a {score_val} targets")
-                context.user_data["score"] = score_val
-    
+
+        context.user_data["score"] = response
+        await update.message.reply_text(
+            f"You have selected a {response} target match."
+        )
+
     await update.message.reply_text(
-        "Select one of the map number: \n" 
+        "Select one of the map numbers:\n"
         "1. Graveyard\n"
         "2. Sky Arena Temples\n"
         "3. Snowpark\n"
@@ -120,61 +122,47 @@ async def score_target_choice(update , context):
         "5. The Gravel Pit\n"
         "6. Smash Island\n"
         "7. Skate Park\n"
-        "8. Slick and Slice\n"
+        "8. Slick'n Slide\n"
         "9. Steky's Speedway\n"
         "10. Sky Arena Tunnels"
     )
     return MAP_CHOICE
 
-async def map_choice(update, context):
-    response = update.message.text.strip().lower()
 
-    if response not in MAPS.keys():
-      await update.message.reply_text("Please enter a valid map number (1-7).")
-      return MAP_CHOICE
-    
-    game_code = random.randint(600000,699999)
+async def map_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    response = update.message.text.strip()
 
+    if response not in MAPS:
+        await update.message.reply_text("❌ Please enter a valid map number (1-10).")
+        return MAP_CHOICE
+
+    game_code = random.randint(600000, 699999)
     is_timer = context.user_data.get("is_timer", True)
 
-    if is_timer == True:
-
-        print("Entering time")
-        time = context.user_data.get("time", 3)
-        print(f"Time {time}")
-
-        for map in MAPS.keys():
-            if map == response:
-
-                await update.message.reply_text (f"You have selected a timer match of {time} minutes in {MAPS_NAME[response]}.\n")
-
-                game_link= f"{PREFIX}mode={TIMER_MODE.get(time)}&room=in{game_code}&arena={MAPS[response]}"
-
-                await update.message.reply_text (f"Game Link: {game_link}")
-
+    if is_timer:
+        time = context.user_data.get("time", "3")
+        await update.message.reply_text(
+            f"You have selected a timer match of {time} minutes in {MAPS_NAME[response]}."
+        )
+        game_link = f"{PREFIX}mode={TIMER_MODE[time]}&room=in{game_code}&arena={MAPS[response]}"
 
     else:
-        score = context.user_data.get("score", 10)
+        score = context.user_data.get("score", "10")
+        await update.message.reply_text(
+            f"You have selected a Score Target match of {score} in {MAPS_NAME[response]}."
+        )
+        game_link = f"{PREFIX}mode={SCORE_MODE[score]}&room=in{game_code}&arena={MAPS[response]}"
 
-        for val in MAPS.keys():
-            if val == response:
-
-                await update.message.reply_text (f"You have selected a Score Target match of {score} targets in {MAPS_NAME[response]}.\n")
-
-                game_link= f"{PREFIX}mode={SCORE_MODE.get(score)}&room=in{game_code}&arena={MAPS[response]}"
-
-                await update.message.reply_text (f"Game Link: {game_link}")
-    
+    await update.message.reply_text(f"🎮 Game Link: {game_link}")
     return ConversationHandler.END
 
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Conversation cancelled. Type /start to begin again.")
+    await update.message.reply_text("❌ Conversation cancelled. Type /start to begin again.")
     return ConversationHandler.END
 
 
-if __name__ == '__main__':
-
+def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
     conv_handler = ConversationHandler(
@@ -182,12 +170,16 @@ if __name__ == '__main__':
         states={
             FORMAT_CHOICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, format_choice)],
             SCORE_TARGET_CHOICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, score_target_choice)],
-            MAP_CHOICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, map_choice)]
+            MAP_CHOICE: [MessageHandler(filters.TEXT & ~filters.COMMAND, map_choice)],
         },
         fallbacks=[CommandHandler("cancel", cancel)],
     )
 
     app.add_handler(conv_handler)
 
-    print("Polling")
+    print("🚀 Bot is polling...")
     app.run_polling(poll_interval=3)
+
+
+if __name__ == "__main__":
+    main()
