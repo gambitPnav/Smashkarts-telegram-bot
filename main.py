@@ -51,6 +51,8 @@ SCORE_MODE = {
     "20": 67436556
 }
 
+WEAPONS = 159212
+
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Hi, Smashkarter! \n"
@@ -136,7 +138,7 @@ async def map_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Please enter a valid map number (1-10).")
         return MAP_CHOICE
 
-    game_code = random.randint(600000, 699999)
+    game_code = random.randint(900000, 999999)
     is_timer = context.user_data.get("is_timer", True)
 
     if is_timer:
@@ -144,14 +146,14 @@ async def map_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             f"You have selected a timer match of {time} minutes in {MAPS_NAME[response]}."
         )
-        game_link = f"{PREFIX}mode={TIMER_MODE[time]}&room=in{game_code}&arena={MAPS[response]}"
+        game_link = f"{PREFIX}mode={TIMER_MODE[time]}&wpns={WEAPONS}&room=in{game_code}&arena={MAPS[response]}"
 
     else:
         score = context.user_data.get("score", "10")
         await update.message.reply_text(
             f"You have selected a Score Target match of {score} in {MAPS_NAME[response]}."
         )
-        game_link = f"{PREFIX}mode={SCORE_MODE[score]}&room=in{game_code}&arena={MAPS[response]}"
+        game_link = f"{PREFIX}mode={SCORE_MODE[score]}&wpns={WEAPONS}&room=in{game_code}&arena={MAPS[response]}"
 
     await update.message.reply_text(f"🎮 Game Link: {game_link}")
     return ConversationHandler.END
