@@ -528,6 +528,7 @@ def main():
             listen="0.0.0.0",
             port=PORT,
             webhook_url=f"{RENDER_URL}/{BOT_TOKEN}",
+            url_path=BOT_TOKEN,
             secret_token="smashkart_secret",
             drop_pending_updates=True
         )
