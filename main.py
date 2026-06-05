@@ -36,7 +36,8 @@ MAPS = {
     "7": "skatepark",
     "8": "slicknslide",
     "9": "stekysspeedway",
-    "10": "skyarena-tunnels"
+    "10": "skyarena-tunnels",
+    "11": "smashfort"
 }
 
 MAPS_NAME = {
@@ -49,17 +50,21 @@ MAPS_NAME = {
     "7": "Skatepark",
     "8": "Slick'n Slide",
     "9": "Steky's Speedway",
-    "10": "Sky Arena Tunnels"
+    "10": "Sky Arena Tunnels",
+    "11": "Smashforts"
+
 }
 
 TIMER_MODE = {
-    "3": 67158028,
-    "6": 67207182,
+    "3": 67109640,
+    "6": 6711040,
     "10": 67111432,
     "20": 67113992
 }
 
 SCORE_MODE = {
+    "3": 67158028,
+    "6": 67207182,
     "10": 67272716,
     "20": 67436556
 }
@@ -110,7 +115,8 @@ MAP_LIST_TEXT = (
     "7. Skatepark\n"
     "8. Slick'n Slide\n"
     "9. Steky's Speedway\n"
-    "10. Sky Arena Tunnels"
+    "10. Sky Arena Tunnels\n"
+    "11. Smashforts"
 )
 
 CTF_MAP_LIST_TEXT = (
@@ -215,6 +221,10 @@ async def format_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["is_timer"] = False
         context.user_data["is_ctf"] = False
         keyboard = [
+            [
+                InlineKeyboardButton("3 Score", callback_data="3"),
+                InlineKeyboardButton("6 Score", callback_data="6")
+            ],
             [
                 InlineKeyboardButton("10 Score", callback_data="10"),
                 InlineKeyboardButton("20 Score", callback_data="20")
@@ -329,7 +339,8 @@ async def score_target_choice(update: Update, context: ContextTypes.DEFAULT_TYPE
                 InlineKeyboardButton("9", callback_data="9")
             ],
             [
-                InlineKeyboardButton("10", callback_data="10")
+                InlineKeyboardButton("10", callback_data="10"),
+                InlineKeyboardButton("11", callback_data="11")
             ],
             [
                 InlineKeyboardButton("⬅️ Back", callback_data="back_home")
@@ -355,7 +366,7 @@ async def map_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     is_timer = context.user_data.get("is_timer", False)
     is_ctf = context.user_data.get("is_ctf", False)
 
-    game_code = random.randint(900000, 999999)
+    game_code = random.randint(200000, 299999)
 
     if is_ctf:
         if response not in CTF_MAPS:
@@ -370,11 +381,13 @@ async def map_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"&wpns={WEAPONS}"
             f"&room=in{game_code}"
             f"&arena={CTF_MAPS[response]}"
+            f"&mdfrs=0"
         )
 
         match_text = (
             f"🚩 CTF Target: {score}\n"
-            f"🗺 Map: {CTF_MAPS_NAME[response]}"
+            f"🗺 Map: {CTF_MAPS_NAME[response]}\n"
+            f"💽 Game Code: in{game_code}"
         )
 
     elif is_timer:
@@ -390,11 +403,13 @@ async def map_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"&wpns={WEAPONS}"
             f"&room=in{game_code}"
             f"&arena={MAPS[response]}"
+            f"&mdfrs=0"
         )
 
         match_text = (
             f"⏳ {time} Minute Timer Match\n"
-            f"🗺 Map: {MAPS_NAME[response]}"
+            f"🗺 Map: {MAPS_NAME[response]}\n"
+            f"💽 Game Code: in{game_code}"
         )
 
     else:
@@ -410,22 +425,25 @@ async def map_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"&wpns={WEAPONS}"
             f"&room=in{game_code}"
             f"&arena={MAPS[response]}"
+            f"&mdfrs=0"
         )
 
         match_text = (
             f"🎯 Score Target: {score}\n"
-            f"🗺 Map: {MAPS_NAME[response]}"
+            f"🗺 Map: {MAPS_NAME[response]}\n"
+            f"💽 Game Code: in{game_code}"
+
         )
 
-    keyboard = [
-        [
-            InlineKeyboardButton("Create New Match 🔄", callback_data="restart")
-        ]
-    ]
+    # keyboard = [
+    #     [
+    #         InlineKeyboardButton("Create New Match 🔄", callback_data="restart")
+    #     ]
+    # ]
 
     await query.edit_message_text(
-        f"{match_text}\n\n🎮 Game Link:\n{game_link}",
-        reply_markup=InlineKeyboardMarkup(keyboard)
+        f"{match_text}\n\n🎮 Game Link:\n{game_link}"
+        # reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
     return ConversationHandler.END
